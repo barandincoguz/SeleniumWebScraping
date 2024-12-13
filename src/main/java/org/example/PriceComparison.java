@@ -13,7 +13,7 @@ public class PriceComparison {
     private WebDriver driver;
     private WebDriverWait wait;
     private static final String SEARCH_PRODUCT = "iphone 13 128GB";
-
+    private static final int MAX_SEARCH_RESULTS = 10;
 
 
     // Method to initialize WebDriver
@@ -45,16 +45,16 @@ public class PriceComparison {
     }
 
     // Method to scrape prices from Cimri
-    private List<Double> scrapeCimriPrices() {
+    private List<Double> scrapeN11Prices() {
         initializeDriver();
         List<Double> prices = new ArrayList<>();
 
         try {
-            driver.get("https://www.hepsiburada.com/");
+            driver.get("https://www.n11.com/");
+            driver.manage().window().maximize();
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
             // Find search input and submit search
-            WebElement searchInput = driver.findElement(By.cssSelector("input[class*='initialComponent']"));
-
+            WebElement searchInput = driver.findElement(By.id("searchData"));
            
             searchInput.clear();
             searchInput.sendKeys(SEARCH_PRODUCT);
@@ -63,16 +63,16 @@ public class PriceComparison {
             // Wait and extract prices
             Thread.sleep(3000);
             List<WebElement> priceElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
-                    By.cssSelector("input[data-test-id='price-current-price']")
+                    By.cssSelector(".priceContainer div ins")
             ));
 
             prices = priceElements.stream()
                     .map(element -> parsePrice(element.getText()))
-                    .filter(Objects::nonNull)
+                    .filter(Objects::nonNull).distinct().limit(MAX_SEARCH_RESULTS)
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
-            System.err.println("Error scraping Cimri: " + e.getMessage());
+            System.err.println("Error scraping N11: " + e.getMessage());
         } finally {
             closeDriver();
         }
@@ -88,7 +88,7 @@ public class PriceComparison {
 
         try {
             driver.get("https://www.trendyol.com/");
-
+            driver.manage().window().maximize();
             // Find search input and submit search
             WebElement searchInput = wait.until(ExpectedConditions.elementToBeClickable(
                     By.cssSelector("input[data-testid='suggestion']")
@@ -105,7 +105,7 @@ public class PriceComparison {
 
             prices = priceElements.stream()
                     .map(element -> parsePrice(element.getText()))
-                    .filter(Objects::nonNull)
+                    .filter(Objects::nonNull).distinct().limit(MAX_SEARCH_RESULTS)
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
@@ -124,7 +124,7 @@ public class PriceComparison {
 
         try {
             driver.get("https://www.akakce.com/");
-
+            driver.manage().window().maximize();
             // Find search input and submit search
             WebElement searchInput = wait.until(ExpectedConditions.elementToBeClickable(
                     By.cssSelector("input[name='q']")
@@ -141,7 +141,7 @@ public class PriceComparison {
 
             prices = priceElements.stream()
                     .map(element -> parsePrice(element.getText()))
-                    .filter(Objects::nonNull)
+                    .filter(Objects::nonNull).distinct().limit(MAX_SEARCH_RESULTS)
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
@@ -157,13 +157,13 @@ public class PriceComparison {
     public void generatePriceComparisonReport() {
         // Scrape prices from each website
 
-        List<Double> cimriPrices = scrapeCimriPrices();
+        List<Double> N11Prices = scrapeN11Prices();
         List<Double> trendyolPrices = scrapeTrendyolPrices();
         List<Double> akakcePrices = scrapeAkakcePrices();
 
         // Combine all prices
         List<Double> allPrices = new ArrayList<>();
-        allPrices.addAll(cimriPrices);
+        allPrices.addAll(N11Prices);
         allPrices.addAll(trendyolPrices);
         allPrices.addAll(akakcePrices);
 
@@ -182,14 +182,15 @@ public class PriceComparison {
                     .orElse(0.0);
 
             // Generate report
-            System.out.println("Price Comparison Report for " + SEARCH_PRODUCT);
-            System.out.println("-------------------------------------");
-            System.out.println("Cimri Prices: " + cimriPrices);
-            System.out.println("-------------------------------------");
+            System.out.println("Price Comparison Report for ---> " + SEARCH_PRODUCT);
+            System.out.println("-+-+-+-+-+-+-+-+-+-+-+-+-+-+");
+            System.out.println("N11 Prices: " + N11Prices);
+            System.out.println("-+-+-+-+-+-+-+-+-+-+-+-+-+-+");
             System.out.println("Trendyol Prices: " + trendyolPrices);
-            System.out.println("-------------------------------------");
+            System.out.println("-+-+-+-+-+-+-+-+-+-+-+-+-+-+");
             System.out.println("Akakce Prices: " + akakcePrices);
-            System.out.println("\nPrice Statistics:");
+            System.out.println("-+-+-+-+-+-+-+-+-+-+-+-+-+-+");
+            System.out.println("Price Statistics:");
             System.out.printf("Cheapest Price: %.2f TL%n", cheapestPrice);
             System.out.printf("Most Expensive Price: %.2f TL%n", mostExpensivePrice);
             System.out.printf("Average Price: %.2f TL%n", averagePrice);
