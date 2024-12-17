@@ -44,17 +44,17 @@ public class PriceComparison {
         }
     }
 
-    // Method to scrape prices from Cimri
-    private List<Double> scrapeN11Prices() {
+    // Method to scrape prices from Pazarama
+    private List<Double> scrapePazaramaPrices() {
         initializeDriver();
         List<Double> prices = new ArrayList<>();
 
         try {
-            driver.get("https://www.n11.com/");
+            driver.get("https://www.pazarama.com/");
             driver.manage().window().maximize();
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
             // Find search input and submit search
-            WebElement searchInput = driver.findElement(By.id("searchData"));
+            WebElement searchInput = driver.findElement(By.id("label-input"));
            
             searchInput.clear();
             searchInput.sendKeys(SEARCH_PRODUCT);
@@ -63,7 +63,7 @@ public class PriceComparison {
             // Wait and extract prices
             Thread.sleep(3000);
             List<WebElement> priceElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
-                    By.cssSelector(".priceContainer div ins")
+                    By.cssSelector(".leading-tight")
             ));
 
             prices = priceElements.stream()
@@ -157,13 +157,13 @@ public class PriceComparison {
     public void generatePriceComparisonReport() {
         // Scrape prices from each website
 
-        List<Double> N11Prices = scrapeN11Prices();
+        List<Double> PazaramaPrices = scrapePazaramaPrices();
         List<Double> trendyolPrices = scrapeTrendyolPrices();
         List<Double> akakcePrices = scrapeAkakcePrices();
 
         // Combine all prices
         List<Double> allPrices = new ArrayList<>();
-        allPrices.addAll(N11Prices);
+        allPrices.addAll(PazaramaPrices);
         allPrices.addAll(trendyolPrices);
         allPrices.addAll(akakcePrices);
 
@@ -184,7 +184,7 @@ public class PriceComparison {
             // Generate report
             System.out.println("Price Comparison Report for ---> " + SEARCH_PRODUCT);
             System.out.println("-+-+-+-+-+-+-+-+-+-+-+-+-+-+");
-            System.out.println("N11 Prices: " + N11Prices);
+            System.out.println("Pazarama Prices: " + PazaramaPrices);
             System.out.println("-+-+-+-+-+-+-+-+-+-+-+-+-+-+");
             System.out.println("Trendyol Prices: " + trendyolPrices);
             System.out.println("-+-+-+-+-+-+-+-+-+-+-+-+-+-+");
