@@ -116,7 +116,7 @@ public class LoginTest {
                 // 'T' - True (Successful Login)
                 // 'F' - False (Failed Login)
                 // 'E' - Empty Credentials
-                {"barandincoguz@gmail.com", "05444971797Baran?", 'T'},  // Valid credentials
+                {"User@Gmail.com", "aa", 'T'},  // Valid credentials
                 {"invalid@example.com", "wrongpassword", 'F'},         // Invalid credentials
                 {"", "", 'E'}                                          // Empty credentials
         };
